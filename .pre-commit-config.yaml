@@ -1,0 +1,13 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0 
+    hooks:
+      - id: check-yaml
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint
+  # - repo: https://github.com/goodwithtech/dockle 
+  #   rev: v0.4.1 
+  #   hooks: 
+  #     - id: dockle 
