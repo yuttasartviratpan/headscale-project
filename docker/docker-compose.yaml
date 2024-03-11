@@ -1,0 +1,9 @@
+version: '3'
+services:
+  headscale:
+    image: headscale/headscale
+    container_name: headscale
+    volumes:
+      - ./config:/etc/headscale
+      - ./data:/var/lib/headscale
+    restart: unless-stopped
