@@ -1,9 +1,10 @@
 version: '3'
 services:
   headscale:
-    image: headscale/headscale
+  # headscale/headscale:0.22.3: headscale v0.22.3 - stable release.
+  # latest tag doesn't work: https://github.com/juanfont/headscale/issues/1810
+    image: headscale/headscale:0.22.3
     container_name: headscale
     volumes:
       - ./config:/etc/headscale
       - ./data:/var/lib/headscale
-    restart: unless-stopped
