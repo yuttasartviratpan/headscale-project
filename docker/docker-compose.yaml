@@ -1,10 +1,33 @@
-version: '3'
+version: '3.7'
 services:
   headscale:
   # headscale/headscale:0.22.3: headscale v0.22.3 - stable release.
   # latest tag doesn't work: https://github.com/juanfont/headscale/issues/1810
-    image: headscale/headscale:0.22.3
+  # Domo from the future, 0.22.3 "stable" release my foot, it doesn't even work
+
+  # headscale/headscale:0.23.0-alpha5 - Latest working version as of 22/Mar/2024
+    image: headscale/headscale:0.23.0-alpha5
     container_name: headscale
+    ports:
+      - "127.0.0.1:8081:8080"
+      - "127.0.0.1:9091:9090"
     volumes:
-      - ./config:/etc/headscale
-      - ./data:/var/lib/headscale
+      - ./headscale/config/:/etc/headscale/
+    command: serve
+    restart: unless-stopped
+
+  # headscale-webui:
+  #   image: ghcr.io/ifargle/headscale-webui:latest
+  #   container_name: headscale-webui
+  #   environment:
+  #     - TZ=Asia/Tokyo
+  #     - COLOR=red                              # Use the base colors (ie, no darken-3, etc) - 
+  #     - HS_SERVER=https://headscale.$DOMAIN    # Reachable endpoint for your Headscale server
+  #     - DOMAIN_NAME=https://headscale.$DOMAIN  # The base domain name for this container.
+  #     - SCRIPT_NAME=/admin                     # This is your applications base path (wsgi requires the name "SCRIPT_NAME").  Remove if you are hosing at the root /
+  #     - KEY="YourKeyBetweenQuotes"             # Generate with "openssl rand -base64 32" - used to encrypt your key on disk.
+  #     - AUTH_TYPE=oidc                         # AUTH_TYPE is either Basic or OIDC.  Empty for no authentication
+  #     - LOG_LEVEL=info                         # Log level.  "DEBUG", "ERROR", "WARNING", or "INFO".  Default "INFO"
+  #   volumes:
+  #     - ./headscale-ui/volume:/data                         # Headscale-WebUI's storage.  Make sure ./volume is readable by UID 1000 (chown 1000:1000 ./volume)
+  #     - ./headscale/config/:/etc/headscale/:ro # Headscale's config storage location.  Used to read your Headscale config.
