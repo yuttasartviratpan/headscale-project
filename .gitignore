@@ -1,1 +1,2 @@
-docker/headscale/config/noise_private.key
+docker/headscale-project/headscale/config/noise_private.key
+docker/headscale-project/.env

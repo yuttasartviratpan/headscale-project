@@ -1,0 +1,95 @@
+version: '3.7'
+services:
+  headscale:
+  # headscale/headscale:0.22.3: headscale v0.22.3 - stable release.
+  # latest tag doesn't work: https://github.com/juanfont/headscale/issues/1810
+  # Domo from the future, 0.22.3 "stable" release my foot, it doesn't even work
+
+  # headscale/headscale:0.23.0-alpha5 - Latest working version as of 22/Mar/2024
+    image: headscale/headscale:0.23.0-alpha5
+    container_name: headscale
+    volumes:
+      - ./headscale/config/:/etc/headscale/
+    command: serve
+    restart: unless-stopped
+    # ports:
+    #   - "127.0.0.1:8081:8080"
+    #   - "127.0.0.1:9091:9090"
+    # networks:
+    #   - headscale-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.headscale-rtr.rule=PathPrefix(`/`) # you might want to add: && Host(`your.domain.name`)"
+      - traefik.http.services.headscale-svc.loadbalancer.server.port=8081
+
+  # headscale-webui:
+  #   image: ghcr.io/ifargle/headscale-webui:latest
+  #   container_name: headscale-webui
+  #   environment:
+  #     - TZ=Asia/Bangkok
+  #     - COLOR=red                              # Use the base colors (ie, no darken-3, etc) - 
+  #     - HS_SERVER=http://0.0.0.0:8080    # Reachable endpoint for your Headscale server
+  #     # - DOMAIN_NAME=http://headscale.$DOMAIN  # The base domain name for this container.
+  #     - SCRIPT_NAME=/admin                     # This is your applications base path (wsgi requires the name "SCRIPT_NAME").  Remove if you are hosing at the root /
+  #     - KEY="YourKeyBetweenQuotes"             # Generate with "openssl rand -base64 32" - used to encrypt your key on disk.
+  #     - AUTH_TYPE=basic                         # AUTH_TYPE is either Basic or OIDC.  Empty for no authentication
+  #     - LOG_LEVEL=debug                         # Log level.  "DEBUG", "ERROR", "WARNING", or "INFO".  Default "INFO"
+  #     # ENV for Basic Auth (Used only if AUTH_TYPE is "Basic").  Can be omitted if you aren't using Basic Auth
+  #     - BASIC_AUTH_USER=user                   # Used for basic auth
+  #     - BASIC_AUTH_PASS=pass                   # Used for basic auth
+  #   volumes:
+  #     - ./headscale-ui/volume:/data                         # Headscale-WebUI's storage.  Make sure ./volume is readable by UID 1000 (chown 1000:1000 ./volume)
+  #     - ./headscale/config/:/etc/headscale/:ro # Headscale's config storage location.  Used to read your Headscale config.
+  #   ports:
+  #     - 5000:5000
+  #   networks:
+  #     - headscale-network
+  #   # labels:
+  #   #   - traefik.enable=true
+  #   #   - traefik.http.routers.headscale-ui-rtr.rule=PathPrefix(`/web`) # you might want to add: && Host(`your.domain.name`)"
+  #   #   - traefik.http.services.headscale-ui-svc.loadbalancer.server.port=80
+
+  headscale-ui:
+    image: ghcr.io/gurucomputing/headscale-ui:latest
+    restart: unless-stopped
+    container_name: headscale-ui
+    # ports:
+    #   - 8880:80 # Use the port of your choice, but map it to 443 on the container
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.headscale-ui-rtr.rule=PathPrefix(`/web`) # you might want to add: && Host(`your.domain.name`)"
+      - traefik.http.services.headscale-ui-svc.loadbalancer.server.port=80
+
+  # nginx:
+  #   image: nginx:latest
+  #   container_name: nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  #   networks:
+  #     - headscale-network
+
+  traefik:
+    image: traefik:latest
+    pull_policy: always
+    restart: unless-stopped
+    container_name: traefik
+    command:
+      - --api.insecure=true # remove in production
+      - --providers.docker
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --global.sendAnonymousUsage=false
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080 # web UI (enabled with api.insecure)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+# networks:
+#   headscale-network:
+#     driver: bridge
