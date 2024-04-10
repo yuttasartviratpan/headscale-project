@@ -1,2 +1,3 @@
 docker/headscale-project/headscale/config/noise_private.key
 docker/headscale-project/.env
+docker/headscale-project/headscale/config/db.sqlite
